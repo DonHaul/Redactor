@@ -36,10 +36,28 @@ function makeid(length) {
     return result;
  }
 
- function redactPage(redactType,redactRules)
+
+ function escapeRegExp(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+  }
+
+function redactStr(str,mode)
+{
+    let outputstr;
+    if(mode=="random")
+    {
+        outputstr = makeid(str.length);
+    }else if(mode=="block")
+    {
+        outputstr = "▅".repeat(str.length);
+    }
+    return outputstr;
+}
+
+ function redactPage(redactType,rules)
  {
 
-    console.log(redactType);
+    console.log(rules);
 //replace text
 let paragraphs = document.getElementsByTagName('*');
 
@@ -52,66 +70,106 @@ for (elt of paragraphs)
         continue;
     }
 
+
+   /* console.log(elt.tagName)
+    if(elt.tagName=='HEAD')
+        break;*/
     //loop thorugh its childs
     for ( var i = 0; i < elt.childNodes.length; i++ ) {
 
-        //look for childs tha tare text
+
+        
+        //look for childs tha are text
         if(elt.childNodes[i].nodeName == "#text")
         {
             //APPLY LOCAL RULES: STRING AND REGEXP RULES HERE
-            let text2chamge = elt.childNodes[i].nodeValue;
-
-            
-
-
-            
-       matches = text2chamge.match(/[A-Z]+/gi);
-
-        if (matches == null)
-        {
-            continue;
-        }
-        let auxstr = text2chamge;
-
-        //for each word
-        for (m of matches)
-        {
+            let text2change = elt.childNodes[i].nodeValue;
+    
+           /*     console.log('len');
+                console.log(text2change,text2change.length);*/
             //for each rule
-            let mode = 'normal'
+            let mode = 'normal';
 
+            let outputstr='test';
+            let matches=[]
+
+            //replace all by default
+
+            //if all tehre is is spacing, then skip
+            let matchspacesonly = text2change.match(/^\s*$/g);
+            if(matchspacesonly!=null)
+            {
+                //if found only spaces skipp
+                continue;
+            }
+
+
+            outputstr = redactStr(text2change,redactType);
+
+
+
+            //apply rules in the order they come
             for (const rule of rules)
             {
+                console.log("RULE");
+                mode=rule.what;
 
-                if(rule.how=='string' && m==rule.who)
+                if(rule.how=='string')
                 {
-                    mode=rule.what;
+                    matches = text2change.matchAll(rule.who);
+
                 }
                 else if(rule.how=='regexp')
                 {
+                    matches = text2change.matchAll(new RegExp(rule.who,'gsi'));
                 
                 }
 
-                const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)/i;
-            
-            //replace 1 by 1 each word
-            if(redactType=="random")
-            {
-            auxstr = auxstr.replace(m, makeid(m.length));
-        }else if(redactType=="block")
-        {
-            auxstr = auxstr.replace(m, "▅".repeat(m.length));
-        }
-            //console.log(m)
-            //console.log
-        }
+             //IF THERE WERE IN FACT ANY MATCHES
+            for (const match of matches) {
+                    
+                //Empty spaces are not to be matched. javascript matches them for some reason
+                if(match[0].length==0)
+                {
+                    continue;
+                }
 
-        elt.childNodes[i].nodeValue=auxstr;
-       // console.log(elt.childNodes[i].nodeValue);
-        //console.log("==================");
-        }        
+                //console.log(rule.what);
+                //if it was an ignore rule
+                if(rule.what=='ignore')
+                {
+                   // console.log("MATCHFOUND:"+match[0]+"|");
+                   /* console.log('MATC');
+                    console.log(match[0]);
+                    console.log(match[0].length);*/
+                                        //REDACT THE CHOSEN STRING
+                               /*         console.log(0, match.index,match[0].length)
+                                        console.log("B4:",outputstr.slice(0, match.index),"|");
+                                        console.log("AFTER:",outputstr.slice(match.index+match[0].length),"|");*/
+                outputstr = outputstr.slice(0, match.index) +match[0] + outputstr.slice(match.index+match[0].length);
+
+ 
+                }
+                else if(rule.what=='redact')
+                {
+
+
+
+                    outputstr = outputstr.slice(0, match.index) + redactStr(match[0] ,redactType); + outputstr.slice(match.index+match[0].length);
+                }
+            }
+        
+            }
+
+
+
+        elt.childNodes[i].nodeValue=outputstr;            
      }
      
      
+
+     //if element has backgorund image replace it
+
      //fetch style
      style = elt.currentStyle || window.getComputedStyle(elt, false);
      //fetch bckgoidn img link
@@ -125,9 +183,6 @@ for (elt of paragraphs)
 
 
 }
- 
-
-
  
 
 //replace images
@@ -150,6 +205,7 @@ for (elt of svgs)
 
 }
 }
+ }
 
 //MESSAGE HANGLER
 chrome.runtime.onMessage.addListener(

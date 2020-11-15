@@ -60,8 +60,7 @@ $( "#save" ).click(function() {
   });  
 
 
-  //retrieve rules and process them
-  data.rules = processRules($('#rules').val())
+
 });
 
 
@@ -75,42 +74,51 @@ $("#mode").change(function(){
 
 function processRules(rules)
 {
+  console.log("PRCOESSING ULES");
 
   rulearr=[]
 
-  
-  var lines = rules.split('\n');
+  let ruleobj={what:'',how:'',who:''};  
+  let lines = rules.split('\n');
 
   const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)/i;
 
   for(var i = 0;i < lines.length;i++){
-    ruleobj={what:'',how:'',who:''};
+    
     //code here using lines[i] which will give you each line
 
+    console.log(lines[i]);
     let found = lines[i].match(regex);
+    console.log(found);
+    if(found==null)
+      continue;
     
     ruleobj.what=found[1].toLowerCase();
     ruleobj.how=found[2].toLowerCase();
     ruleobj.who=found[3];
 
-    if(ruleobj.what="ign")
+    if(ruleobj.what=="ign")
     {
       ruleobj.what="ignore"
-    }
-    if(ruleobj.what="rep")
+    }else if(ruleobj.what=="rep")
     {
       ruleobj.what="replace"
-    }
-    if(ruleobj.what="red")
+    }else if(ruleobj.what=="red")
     {
+      console.log("HERE");
       ruleobj.what="redact"
-    }
-    if(ruleobj.how="str")
+    }else  if(ruleobj.how=="str")
     {
       ruleobj.how="string"
     }
+    console.log(found[1].toLowerCase());
+    console.log(ruleobj.what,ruleobj.how,ruleobj.who)
+    console.log("OBS");
+    console.log(ruleobj);
 
-    rulearr.push(ruleobj)
+
+    //objects are passed by reference, so a copy must be made
+    rulearr.push(Object.assign({}, ruleobj))
 
 
     
@@ -131,6 +139,9 @@ $("#Toggle").click(function() {
   if(data.redacting==true)
   {
     $("#Toggle").text("Turn OFF");
+
+      //retrieve rules and process them
+  data.rules = processRules($('#rules').val())
 
 
 
@@ -191,6 +202,11 @@ $("#ON").click ( function(element) {
 
 
 
+
+    //retrieve rules and process them
+    data.rules = processRules($('#rules').val());
+
+    console.log(data);
 
   //chrome.tabs.query(params,gotab);
   console.log("PROMISA");
