@@ -43,15 +43,34 @@ function makeid(length) {
 
 function redactStr(str,mode)
 {
+    console.log(str)
     let outputstr;
-    if(mode=="random")
+    let copiestr=str;
+    //escapes spaces
+    let matchies = copiestr.matchAll(/\S+/gi);
+
+    let auxtstr='';
+
+    for (let match of matchies) 
     {
-        outputstr = makeid(str.length);
-    }else if(mode=="block")
-    {
-        outputstr = "▅".repeat(str.length);
-    }
-    return outputstr;
+        console.log(match)
+        if(mode=="random")
+        {
+            auxtstr = makeid(match[0].length);
+        }else if(mode=="block")
+        {
+            auxtstr = "▅".repeat(match[0].length);
+        }
+        
+        
+        copiestr = copiestr.slice(0, match.index) +auxtstr + copiestr.slice(match.index+match[0].length);
+
+ 
+        }
+               
+            
+
+    return copiestr;
 }
 
  function redactPage(redactType,rules)
