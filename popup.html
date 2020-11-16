@@ -3,32 +3,47 @@
   <head>
     <link rel="stylesheet" href="thirdparty/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   </head>
-  <body style='width:500px;height:200px'><h2>Redactor v1.3</h2>
-    <button id="Toggle">Turn ON</button>
-    <br>
-<button id="ON">Redact Once</button>
-<br>
-<label>Redacting Mode</label>
-<select id='mode'>
+  <body style='width:500px;height:200px'>
+    
+    <div class="container">
+      <h2 class="">Redactor v1.3</h2>
+    <button class="btn btn-primary" id="Toggle">Turn ON</button>
+<button class="btn btn-primary" id="ON">Redact Once</button>
+<br><br>
+<div class="row">
+<label class="col-6">Redacting Mode</label>
+<select class="col-5 form-control" id='mode'>
   <option value="random">Random Letters</option>
   <option value="block">Redacted</option>
 </select>
-
-  <p>Redact Images</p>
-<select id='imgredact'>
+<br>
+  <label class="col-6">Redact Images</label>
+<select class="col-5 form-control" id='imgredact'>
   <option value="yes">Yes</option>
   <option value="no">No</option>
 </select></br>
+</div>
+</br></br>
 
+<div class="row"> 
+
+    <p class="col-2">Rules</p>    <select class="col-6 form-control" id='ruleTemplates'>
+      <option disabled selected value > -- select an template -- </option>
+      <option value="redactall">Redact All (.*)</option>
+      <option value="redactnumbers">Redactnumbers [0-9]</option>
+      <option value="replacename">Replace Name</option>
+      <option value="redactjq">Redact By ID</option>
+  </select>
+  
+  </div>
+  <textarea class="form-control" style="resize: none;" id="rules" rows="4" placeholder="custom rules"></textarea>
+
+  
   </br>
-</br>
-    <p>Custom Rules</p>
-    <textarea style="width: 480px;" id="rules" rows="4" placeholder="custom rules"></textarea>
+    <!--<button id="save">Save</button>-->
+    <button class="btn btn-secondary"  id="help">Help</button>
+  </div>
     <br>
-    <button id="save">Save</button>
-    <button id="help">Help</button>
-    <br>
-    <p style="size: 10px;">For any suggestions or feature send email to ramiro.anumus@gmail.com</p>
     <script src='jquery-3.5.1.min.js'></script>
     <script src="popup.js"></script>
   </body>

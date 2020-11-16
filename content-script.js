@@ -43,7 +43,7 @@ function makeid(length) {
 
 function redactStr(str,mode)
 {
-    console.log(str)
+    //console.log(str)
     let outputstr;
     let copiestr=str;
     //escapes spaces
@@ -53,7 +53,7 @@ function redactStr(str,mode)
 
     for (let match of matchies) 
     {
-        console.log(match)
+        //console.log(match)
         if(mode=="random")
         {
             auxtstr = makeid(match[0].length);
@@ -73,10 +73,10 @@ function redactStr(str,mode)
     return copiestr;
 }
 
- function redactPage(redactType,rules)
+ function redactPage(redactType,rules,data)
  {
 
-    console.log(rules);
+    console.log(data);
 //replace text
 let paragraphs = document.getElementsByTagName('*');
 
@@ -109,7 +109,7 @@ for (elt of paragraphs)
             //for each rule
             let mode = 'normal';
 
-            let outputstr='test';
+            let outputstr=text2change;
             let matches=[]
 
             //replace all by default
@@ -138,7 +138,7 @@ for (elt of paragraphs)
                     continue;
                 }*/
 
-                console.log("RULE");
+                //console.log("RULE");
                 mode=rule.what;
 
                 if(rule.how=='string')
@@ -187,6 +187,10 @@ for (elt of paragraphs)
 
      //if element has backgorund image replace it
 
+
+     if(data.imgredact==true)
+     {
+         
      //fetch style
      style = elt.currentStyle || window.getComputedStyle(elt, false);
      //fetch bckgoidn img link
@@ -198,30 +202,36 @@ for (elt of paragraphs)
      }
 
 
-
+    }
+    }
 }
- 
+        console.log(data.imgredact);
 
-//replace images
-let imgs = document.getElementsByTagName('img');
-
-for (elt of imgs)
-{
-    elt.src=`https://via.placeholder.com/${elt.width}x${elt.height}`;
-    
-
-}
-
-let svgs = document.getElementsByTagName('svg');
+        //replace images
+        if(data.imgredact==true)
+        {
 
 
-for (elt of svgs)
-{
-        
-    elt.outerHTML=`<img src="https://via.placeholder.com/36x36" style="height:${elt.height};width:${elt.width}" >`
+            let imgs = document.getElementsByTagName('img');
 
-}
-}
+            for (elt of imgs)
+            {
+                elt.src=`https://via.placeholder.com/${elt.width}x${elt.height}`;
+                
+
+            }
+
+            let svgs = document.getElementsByTagName('svg');
+
+
+            for (elt of svgs)
+            {
+                    
+                elt.outerHTML=`<img src="https://via.placeholder.com/36x36" style="height:${elt.height};width:${elt.width}" >`
+
+            }
+        }
+   
  }
 
 //MESSAGE HANGLER
@@ -240,13 +250,13 @@ chrome.runtime.onMessage.addListener(
                 break;
             case "redactonce":
                 //redacts one single time
-                redactPage(message.data.mode,message.data.rules);
+                redactPage(message.data.mode,message.data.rules,message.data);
                 break;
             case "redact":
                 //redacts ON
                 sessionStorage.setItem('redacting', "true");
                 //message.redactType
-                redactPage(message.data.mode,message.data.rules);
+                redactPage(message.data.mode,message.data.rules,message.data);
                 break;
                 case "stopredact":
                     //REDACT OFF

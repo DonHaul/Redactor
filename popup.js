@@ -2,13 +2,19 @@
 //alternative wouuld be to send message that then would execute funcitonlike so: chrome.runtime.sendMessage({ msg: "startFunc" });
 //and do this in bg.js
 //https://stackoverflow.com/questions/5443202/call-a-function-in-background-from-popup
-/*
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse){
-        if(request.msg == "startFunc") func();
-    }
-);
+
+
+
+/* 
+//INSERT THIS TO SIMULATE  FIRST TIME USER IS LOGGING AND THERE IS NO LOCAL STORAGE
+          chrome.storage.local.clear(function() {
+            var error = chrome.runtime.lastError;
+            if (error) {
+                console.error(error);
+            }
+        });
 */
+
  var bgPage = chrome.extension.getBackgroundPage();
 
 
@@ -16,7 +22,8 @@ chrome.runtime.onMessage.addListener(
 var data={mode:'random',
           redacting:false,
           rules:[],
-          imgredact:'yes'}
+          imgredact:false}
+
 
 
 //whenever the popup is open, it queries fetch information from the current tab
@@ -33,61 +40,133 @@ var data={mode:'random',
     });
 });
 
-//fetch righting rules
-chrome.storage.local.get('rules', function(result) {
+//fetch all storeage rules
+chrome.storage.local.get(['rules','imgredact','mode'], function(result) {
   console.log('rukes');
   console.log(result);
 
+  //default
+  if(result.rules==undefined)
+  {
+    $("#rules").val("redact regexp .*")
+  }
+  else
+  {
+    $("#rules").val(result.rules);
+  }
   //data.rules = result.rules;
 
   //update value of text area
-  $("#rules").val(result.rules);
+  if(result.mode==undefined)
+  {
+    //default
+    $('#mode').val("block");
+  }else
+  {
+    $('#mode').val(result.mode);
+  }
+  
+
+  //update image redact
+  if(result.imgredact==true)
+  {
+    $("#imgredact").val("yes");
+
+  }else
+  {
+    //default
+    $("#imgredact").val("no");
+  }
+
+
+
+  
+
+
+
 });  
 
+//.bind('change keyup',
+$('#rules').change(function(){
+
+  let rules = $("#rules").val();
+  console.log(rules);
+  chrome.storage.local.set({rules}, function() {
+    console.log('Rules Updated');
+  });  
+});
+
+
+/*
 //update rules
 $( "#save" ).click(function() {
 
   let rules = $("#rules").val();
   console.log(rules);
-
-
-  //update popup rules
-
-
-  //update stirage rulles
-  //rules is shortcut for rules:rules
-  chrome.storage.local.set({rules}, function() {
-    console.log('Rules Updated');
-  });  
-
-
-
 });
-
+*/
 
 //https://stackoverflow.com/questions/5745822/open-a-help-page-after-chrome-extension-is-installed-first-time
 $("#help").click(function(){
 
-  console.log("AMAZING");
-  alert("https://www.youtube.com/");
   chrome.tabs.create({url: "options.html"});
 
   
 });
 
+
+$("#imgredact").change(function(){
+
+  if( $(this).children("option:selected").val()=='yes')
+  {
+
+    data.imgredact = true;
+  }
+  else
+  {
+    data.imgredact = false;
+  }
+  chrome.storage.local.set({imgredact:data.imgredact }, function() {
+    console.log('ImgRedact Update');
+  });  
+
+  
+});
+
+$("#ruleTemplates").change(function(){
+
+  let templie = $(this).children("option:selected").val()
+  if( templie == 'redactall')
+  {
+
+    $("#rules").val("redact regexp .*").change();
+
+  }else if (templie == 'redactnumbers')
+  {
+    $("#rules").val("redact regexp [0-9]").change();
+
+  }else if (templie=='replacename')
+  {
+    $("#rules").val("replace string John->Casey").change();
+  }
+  else if (templie=='redactjq')
+  {
+    $("#rules").val("redact jquerysel #paragraph").change();
+  }  
+  
+});
+
+
+
 $("#mode").change(function(){
 
   data.mode = $(this).children("option:selected").val();
 
-  
+  chrome.storage.local.set({mode:data.mode }, function() {
+    console.log('Mode Update');
+  });  
 });
 
-$("#imgredact").change(function(){
-
-  data.imgredact = $(this).children("option:selected").val();
-
-  
-});
 
 
 
@@ -170,6 +249,7 @@ const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.
 console.log(rulearr);
 }
 
+
 $("#Toggle").click(function() {
 //toggle_btn.onclick = function(element) {
 
@@ -183,7 +263,7 @@ $("#Toggle").click(function() {
     $("#Toggle").text("Turn OFF");
 
       //retrieve rules and process them
-  data.rules = processRules($('#rules').val())
+      data.rules = processRules($('#rules').val())
 
 
 
