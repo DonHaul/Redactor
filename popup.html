@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-
-    </style>
+    <link rel="stylesheet" href="thirdparty/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   </head>
   <body style='width:500px;height:200px'><h2>Redactor v1.3</h2>
     <button id="Toggle">Turn ON</button>
@@ -14,14 +12,21 @@
 <select id='mode'>
   <option value="random">Random Letters</option>
   <option value="block">Redacted</option>
-
 </select>
+
+  <p>Redact Images</p>
+<select id='imgredact'>
+  <option value="yes">Yes</option>
+  <option value="no">No</option>
+</select></br>
+
   </br>
 </br>
     <p>Custom Rules</p>
     <textarea style="width: 480px;" id="rules" rows="4" placeholder="custom rules"></textarea>
     <br>
     <button id="save">Save</button>
+    <button id="help">Help</button>
     <br>
     <p style="size: 10px;">For any suggestions or feature send email to ramiro.anumus@gmail.com</p>
     <script src='jquery-3.5.1.min.js'></script>

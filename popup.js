@@ -15,7 +15,8 @@ chrome.runtime.onMessage.addListener(
 //holds all needed info 
 var data={mode:'random',
           redacting:false,
-          rules:[]}
+          rules:[],
+          imgredact:'yes'}
 
 
 //whenever the popup is open, it queries fetch information from the current tab
@@ -64,12 +65,30 @@ $( "#save" ).click(function() {
 });
 
 
+//https://stackoverflow.com/questions/5745822/open-a-help-page-after-chrome-extension-is-installed-first-time
+$("#help").click(function(){
+
+  console.log("AMAZING");
+  alert("https://www.youtube.com/");
+  chrome.tabs.create({url: "options.html"});
+
+  
+});
+
 $("#mode").change(function(){
 
   data.mode = $(this).children("option:selected").val();
 
   
 });
+
+$("#imgredact").change(function(){
+
+  data.imgredact = $(this).children("option:selected").val();
+
+  
+});
+
 
 
 function processRules(rules)
@@ -78,10 +97,13 @@ function processRules(rules)
 
   rulearr=[]
 
-  let ruleobj={what:'',how:'',who:''};  
+  let ruleobj={what:'',how:'',who:'',forwho:''};  
   let lines = rules.split('\n');
 
-  const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)/i;
+  //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)\|(.*)/i;
+ // const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)(?:\|(.*)|.*)/i;
+//const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*?)\s*-\>(.*)$/i;
+const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.+)$/i;
 
   for(var i = 0;i < lines.length;i++){
     
@@ -96,6 +118,7 @@ function processRules(rules)
     ruleobj.what=found[1].toLowerCase();
     ruleobj.how=found[2].toLowerCase();
     ruleobj.who=found[3];
+    ruleobj.forwho=found[4];
 
     if(ruleobj.what=="ign")
     {
@@ -111,6 +134,25 @@ function processRules(rules)
     {
       ruleobj.how="string"
     }
+
+
+    if (found[1]=='replace')
+    {
+
+    lol = found[3].match(/(.+?)->(.*)/i)
+    
+    //overwirte previous who
+    ruleobj.who=lol[1];
+    ruleobj.forwho=lol[2];
+    }
+   /* else
+    {
+    console.log("NORMAL:",match[3]);
+    }*/
+
+
+
+
     console.log(found[1].toLowerCase());
     console.log(ruleobj.what,ruleobj.how,ruleobj.who)
     console.log("OBS");
@@ -201,7 +243,7 @@ function getTabID() {
 $("#ON").click ( function(element) {
 
 
-
+  console.log("REDACTY BOI RULY");
 
     //retrieve rules and process them
     data.rules = processRules($('#rules').val());

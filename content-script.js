@@ -122,14 +122,22 @@ for (elt of paragraphs)
                 continue;
             }
 
-
-            outputstr = redactStr(text2change,redactType);
+ 
+                
+ 
+            
 
 
 
             //apply rules in the order they come
             for (const rule of rules)
             {
+                //this specific rules is treated before
+                /*if (rule.what=='ignore' && rule.how=='regexp' && rule.who=='.*')
+                {
+                    continue;
+                }*/
+
                 console.log("RULE");
                 mode=rule.what;
 
@@ -155,26 +163,16 @@ for (elt of paragraphs)
 
                 //console.log(rule.what);
                 //if it was an ignore rule
-                if(rule.what=='ignore')
-                {
-                   // console.log("MATCHFOUND:"+match[0]+"|");
-                   /* console.log('MATC');
-                    console.log(match[0]);
-                    console.log(match[0].length);*/
-                                        //REDACT THE CHOSEN STRING
-                               /*         console.log(0, match.index,match[0].length)
-                                        console.log("B4:",outputstr.slice(0, match.index),"|");
-                                        console.log("AFTER:",outputstr.slice(match.index+match[0].length),"|");*/
-                outputstr = outputstr.slice(0, match.index) +match[0] + outputstr.slice(match.index+match[0].length);
-
- 
-                }
-                else if(rule.what=='redact')
+                 if(rule.what=='redact')
                 {
 
 
 
                     outputstr = outputstr.slice(0, match.index) + redactStr(match[0] ,redactType); + outputstr.slice(match.index+match[0].length);
+                }
+                else if(rule.what=='replace')
+                {
+                    outputstr = outputstr.slice(0, match.index) + rule.forwho + outputstr.slice(match.index+match[0].length);
                 }
             }
         

@@ -1,18 +1,53 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-      button {
-        height: 30px;
-        width: 30px;
-        outline: none;
-        margin: 10px;
-      }
-    </style>
+    
   </head>
   <body>
-    <div id="buttonDiv">
-    </div>
+<H1>Redactor Help Page</H1>
+
+<h3>Turn ON / Turn OFF  - Activates automactic redacting on a tab. It will redact when the url changes</h3>
+<h3>Redact Once - Redacts the curent page 1 time, thats it.</h3>
+<h3>Redact Images - Should images be redacted or not</h3>
+<h3>Custom Rules</h3>
+<p>You can set custom rules in order to redact ignore or replace a certain pattern or string.<br>There must be only 1 rule per line.<br>They must have the folowing format:</p>
+<code style="font-size: 14px;">ACTION METHOD OBJECT</code>
+<p>ACTION can be:</p>
+    <ul>
+      <li>ignore - it will ignore something</li>
+      <li>redact - it will redact something</li>
+      <li>replace - it will replace something with another thing</li>
+    </ul>
+    <p>METHOD can be:</p>
+    <ul>
+      <li>string - looks for a string to ignore/redact/replace</li>
+      <li>regexp - looks for a regular expression to ignore/redact/replace. Look more into regular expressions <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">here</a> carefull though, once you use regular expressions there is no going back :p</li>
+      <li>jquerysel - looks for jquery selectors to ignore/redact/replace. See how to use them <a href="https://api.jquery.com/category/selectors/">here</a> and <a href="https://www.w3schools.com/jquery/jquery_ref_selectors.asp">here</a>, they allow you to select elements based on their id, class or dom place.</li>
+    </ul>
+
+    <h2>Usefull Uses - Hiding your phone number / credit card number</h2>
+    <p>Imagine you want to show a page with a credit cart number or your personal number, and you want to hide that, well just add two rules:</p>
+    <code style="font-size: 14px;">
+      ignore regexp .*</br>
+      redact regexp [0-9]</code>
+      <p>the first rule will make it so, nothing is redacted by default</p>
+      <p>the first rule will look for any numbers on the page and redact them</p>
+      
+    <h3>Examples</h3>
+    <ul>
+      <li>
+
+    <code style="font-size: 14px;">ignore string john</code>
+    <p>Will ignore the word john, and it will not redact it</p>
+  </li><li> <code style="font-size: 14px;">redact regexp (badword|sillyword)</code>
+    <p>Will redact the word john, and it will not redact it</p>
+  </li><li><code style="font-size: 14px;">replace regexp (cat|dog)->turtle</code>
+    <p>Will replace the word cat or the word dog, with the word turtle</p>
+  </li><li><code style="font-size: 14px;">replace string female->male</code>
+    <p>Will replace the word female by the word male</p>
+
+  </li>
+</ul>
   </body>
   
 </html>
