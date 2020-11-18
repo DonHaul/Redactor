@@ -36,14 +36,14 @@ function updateIcon(tabId,redactActive)
   if(redactActive)
   {
     chrome.browserAction.setIcon({
-      path: "images/ON/Inkedget_started32_LI.jpg",
+      path: "images/icon128ON.png",
       tabId: tabId
   });
 
   }else if(redactActive==false)
   {
     chrome.browserAction.setIcon({
-      path: "images/get_started32.png",
+      path: "images/icon128.png",
       tabId: tabId
   });
   }
@@ -56,12 +56,32 @@ function updateIcon(tabId,redactActive)
     function(request, sender, sendResponse) {
         // read `newIconPath` from request and read `tab.id` from sender
         console.log(request)
-        if(request.redacting=="true")
+
+        if(request.action=='updateIcon')
         {
 
+          if(request.redacting=="true")
+          {
+            chrome.browserAction.setIcon({
+              path: "images/icon128ON.png",
+              tabId: sender.tab.id
+          });
+        
+          }else
+          {
+            chrome.browserAction.setIcon({
+              path: "images/icon128.png",
+              tabId: sender.tab.id
+          });
+          }
+          
+
+
+        }
+        
         
       }
-    }); 
+    ); 
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   console.log(tabId)

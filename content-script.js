@@ -1,4 +1,82 @@
-console.log('content-scriptjs');
+
+ function processRules(rules)
+{
+  console.log("PRCOESSING ULES");
+
+  rulearr=[]
+
+  let ruleobj={what:'',how:'',who:'',forwho:''};  
+  let lines = rules.split('\n');
+
+  //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)\|(.*)/i;
+ // const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)(?:\|(.*)|.*)/i;
+//const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*?)\s*-\>(.*)$/i;
+const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.+)$/i;
+
+  for(var i = 0;i < lines.length;i++){
+    
+    //code here using lines[i] which will give you each line
+
+    console.log(lines[i]);
+    let found = lines[i].match(regex);
+    console.log(found);
+    if(found==null)
+      continue;
+    
+    ruleobj.what=found[1].toLowerCase();
+    ruleobj.how=found[2].toLowerCase();
+    ruleobj.who=found[3];
+    ruleobj.forwho=found[4];
+
+    if(ruleobj.what=="ign")
+    {
+      ruleobj.what="ignore"
+    }else if(ruleobj.what=="rep")
+    {
+      ruleobj.what="replace"
+    }else if(ruleobj.what=="red")
+    {
+      console.log("HERE");
+      ruleobj.what="redact"
+    }else  if(ruleobj.how=="str")
+    {
+      ruleobj.how="string"
+    }
+
+
+    if (found[1]=='replace')
+    {
+
+    lol = found[3].match(/(.+?)->(.*)/i)
+    
+    //overwirte previous who
+    ruleobj.who=lol[1];
+    ruleobj.forwho=lol[2];
+    }
+   /* else
+    {
+    console.log("NORMAL:",match[3]);
+    }*/
+
+
+
+
+    console.log(found[1].toLowerCase());
+    console.log(ruleobj.what,ruleobj.how,ruleobj.who)
+    console.log("OBS");
+    console.log(ruleobj);
+
+
+    //objects are passed by reference, so a copy must be made
+    rulearr.push(Object.assign({}, ruleobj))
+
+
+    
+  }
+  console.log(rulearr);
+  return rulearr;
+
+}
 
 const generateRandomString = (length=6)=>Math.random().toString(20).substr(2, length);
 
@@ -6,23 +84,28 @@ const generateRandomString = (length=6)=>Math.random().toString(20).substr(2, le
 /*let imgs = document.getElementsByTagName('img')*/
 
 
+
+
 // Get saved data from sessionStorage
 let redacting = sessionStorage.getItem('redacting');
 
 
-console.log(redacting)
-
-
 if(redacting=="true")
 {
-    console.log("redact now");
-    redactPage();
+    console.log("REDACTING ACTIVE");
+
+    chrome.storage.local.get(['rules','imgredact','mode'], function(result) {
+
+        console.log(result);
+
+        redactPage(result.mode,processRules(result.rules),result);
+      });     
 }
 
 
-    // send message to background script
+    // send message to background script to update icon if thats the case
     console.log("SEND MESSAGE");
-chrome.runtime.sendMessage({ "redacting" : redacting });
+chrome.runtime.sendMessage({ action:"updateIcon",redacting: redacting });
 
 
 
@@ -59,7 +142,7 @@ function redactStr(str,mode)
             auxtstr = makeid(match[0].length);
         }else if(mode=="block")
         {
-            auxtstr = "▅".repeat(match[0].length);
+            auxtstr = "■".repeat(match[0].length);//█ █▆▀▀▀▀	▊▊▊▊▊▊▊ ■■■■ ◼◼◼
         }
         
         
@@ -73,7 +156,7 @@ function redactStr(str,mode)
     return copiestr;
 }
 
- function redactPage(redactType,rules,data)
+async function redactPage(redactType,rules,data)
  {
 
     console.log(data);
@@ -127,7 +210,7 @@ for (elt of paragraphs)
  
             
 
-
+            //console.log(rules);
 
             //apply rules in the order they come
             for (const rule of rules)
@@ -137,6 +220,12 @@ for (elt of paragraphs)
                 {
                     continue;
                 }*/
+
+                //if its a global rule, then skip
+                if(rule.how=='jquerysel')
+                {
+                    continue;
+                }
 
                 //console.log("RULE");
                 mode=rule.what;
@@ -205,6 +294,91 @@ for (elt of paragraphs)
     }
     }
 }
+
+
+//apply global rules
+//apply rules in the order they come
+for (const rule of rules)
+{
+    //this specific rules is treated before
+    /*if (rule.what=='ignore' && rule.how=='regexp' && rule.who=='.*')
+    {
+        continue;
+    }*/
+    let foundelems = [];
+
+    //oonly apply global rules
+    if(rule.how=='jquerysel')
+    {
+      //xpath
+
+    foundelems = document.querySelectorAll(rule.who)
+    }
+    else if(rule.how=='xpath')
+    {
+        
+
+        //ether like so
+        //foundelems = document.evaluate(rule.what, document, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+        //foundelems.iterateNext()
+
+        //or like so
+
+        let xpathresults = document.evaluate(rule.who, document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+
+        for (var i =0;i<xpathresults.snapshotLength;i++)
+        {
+
+            console.log("SAMAZING");
+            console.log(xpathresults.snapshotItem(i))
+            foundelems.push(xpathresults.snapshotItem(i));
+        }
+
+    }
+    else
+    {
+        continue;
+    }
+
+
+        //css selector
+        console.log(foundelems);
+
+            for (elt of foundelems)
+        {
+            
+
+
+        /* console.log(elt.tagName)
+            if(elt.tagName=='HEAD')
+                break;*/
+            //loop thorugh its childs
+            for ( var i = 0; i < elt.childNodes.length; i++ ) {
+
+                if(elt.childNodes[i].nodeName != "#text")
+                    continue;
+
+
+            if(rule.what=='redact')
+            {
+                elt.childNodes[i].nodeValue=redactStr(elt.childNodes[i].nodeValue ,redactType);  
+
+            }else if (rule.what=='replace')
+            {
+                console.log("YES");
+                elt.childNodes[i].nodeValue=rule.forwho;  
+            }
+            
+            }
+        }
+    }
+
+
+
+
+
+
+
         console.log(data.imgredact);
 
         //replace images
@@ -250,6 +424,7 @@ chrome.runtime.onMessage.addListener(
                 break;
             case "redactonce":
                 //redacts one single time
+                console.log(message);
                 redactPage(message.data.mode,message.data.rules,message.data);
                 break;
             case "redact":

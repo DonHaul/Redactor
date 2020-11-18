@@ -19,7 +19,7 @@
 
 
 //holds all needed info 
-var data={mode:'random',
+var data={mode:'block',
           redacting:false,
           rules:[],
           imgredact:false}
@@ -60,22 +60,23 @@ chrome.storage.local.get(['rules','imgredact','mode'], function(result) {
   if(result.mode==undefined)
   {
     //default
-    $('#mode').val("block");
+    $('#mode').val("block").change();
   }else
   {
-    $('#mode').val(result.mode);
+    $('#mode').val(result.mode).change();
   }
   
 
   //update image redact
   if(result.imgredact==true)
   {
-    $("#imgredact").val("yes");
+    $("#imgredact").val("yes").change();
 
   }else
   {
     //default
-    $("#imgredact").val("no");
+    //.CHANGE IS USED TO TRIGGER date.image update
+    $("#imgredact").val("no").change();
   }
 
 
@@ -182,7 +183,7 @@ function processRules(rules)
   //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)\|(.*)/i;
  // const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)(?:\|(.*)|.*)/i;
 //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*?)\s*-\>(.*)$/i;
-const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.+)$/i;
+const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel|xpath)\s+(.+)$/i;
 
   for(var i = 0;i < lines.length;i++){
     
@@ -229,13 +230,6 @@ const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.
     console.log("NORMAL:",match[3]);
     }*/
 
-
-
-
-    console.log(found[1].toLowerCase());
-    console.log(ruleobj.what,ruleobj.how,ruleobj.who)
-    console.log("OBS");
-    console.log(ruleobj);
 
 
     //objects are passed by reference, so a copy must be made
@@ -320,17 +314,13 @@ function getTabID() {
 }
 
 
-$("#ON").click ( function(element) {
-
-
-  console.log("REDACTY BOI RULY");
+$("#ON").click ( function() {
 
     //retrieve rules and process them
     data.rules = processRules($('#rules').val());
 
     console.log(data);
 
-  //chrome.tabs.query(params,gotab);
   console.log("PROMISA");
   getTabID().then((tabid)=>{
     let msg ={
@@ -341,17 +331,5 @@ $("#ON").click ( function(element) {
     console.log("REDACT ON");
     chrome.tabs.sendMessage(tabid,msg);
 
-  });
-  console.log("PROMISU");
-  
+  });  
 });
-
-
-function gotab(tabs){
-
-  let msg ={
-    action:"redact"
-  }
-
-  chrome.tabs.sendMessage(tabs[0].id,msg);
-};
