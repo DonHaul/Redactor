@@ -1,7 +1,23 @@
 
+var nextID = 1;
+
+//adds property to  thing
+function hashElem(div){
+   div.hashID = div.hashID || ('hashID_' + (nextID++));
+   return div.hashID;
+}
+
+mutatedElems = {}
+
+  // Stop the observer, when it is not required any more.
+//observer.disconnect();
+
+
+
  function processRules(rules)
 {
   console.log("PRCOESSING ULES");
+  console.log(rules);
 
   rulearr=[]
 
@@ -90,6 +106,66 @@ const generateRandomString = (length=6)=>Math.random().toString(20).substr(2, le
 let redacting = sessionStorage.getItem('redacting');
 
 
+// Create an observer instance.
+var observer;
+
+
+function createMutObserver(data)
+{
+
+
+
+return new MutationObserver(function (mutations) {
+
+
+    //hide images
+    mutations.forEach(function (mutation) {
+      console.log(mutation);
+
+      console.log(mutation.type);
+      console.log(mutation.attributeName);
+      console.log(mutation.target.nodeName)
+      console.log(mutation.target.nodeName)
+
+
+      if(mutation.type=='childList')
+      {
+       redactPage(mutation.addedNodes,data.mode,data.rules,data) 
+       //redactPage(document.getElementsByTagName('*'),result.mode,processRules(result.rules),result);
+    }else if(data.imgredact==true &&  mutation.type=="attributes" && mutation.attributeName=="src" && mutation.target.nodeName=="IMG")
+      {
+        //if does not exist in mutations elems
+        //alternative to issmaenode https://www.w3schools.com/JSREF/met_node_issamenode.asp#:~:text=The%20isSameNode()%20method%20checks,the%20same%20node%2C%20otherwise%20false.
+        if(hashElem(mutation.target) in mutatedElems == false)
+        {
+
+        
+          //hide img
+          console.log("TIME TO HIDE");
+          RedactImg(mutation.target);
+          hashElem(mutation.target)
+          mutatedElems[hashElem(mutation.target)]=mutation.target;
+        }
+        else{
+            console.log("Already Exists");
+        }
+      }
+
+    });
+  });
+}
+
+  var config = {
+    attributes: true,
+    attributeFilter: [ "src" ],
+    childList: true, 
+    subtree: true
+  };
+  
+
+  let imgredact=false;
+
+
 if(redacting=="true")
 {
     console.log("REDACTING ACTIVE");
@@ -98,7 +174,13 @@ if(redacting=="true")
 
         console.log(result);
 
-        redactPage(result.mode,processRules(result.rules),result);
+        
+        
+        imgredact=result.imgredact;
+
+
+        observer = createMutObserver(result);
+        redactPage(document.getElementsByTagName('*'),result.mode,processRules(result.rules),result);
       });     
 }
 
@@ -156,12 +238,12 @@ function redactStr(str,mode)
     return copiestr;
 }
 
-async function redactPage(redactType,rules,data)
+async function redactPage(nodestoredact,redactType,rules,data)
  {
 
     console.log(data);
 //replace text
-let paragraphs = document.getElementsByTagName('*');
+let paragraphs = nodestoredact
 
 //for every elemnt
 for (elt of paragraphs)
@@ -390,7 +472,8 @@ for (const rule of rules)
 
             for (elt of imgs)
             {
-                elt.src=`https://via.placeholder.com/${elt.width}x${elt.height}`;
+
+                RedactImg(elt);
                 
 
             }
@@ -406,6 +489,16 @@ for (const rule of rules)
             }
         }
    
+
+          // Observe the body (and its descendants) for `childList` changes.
+  //https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe
+  observer.observe(document.body, config);
+
+ }
+
+ function RedactImg(img)
+ {
+    img.src=`https://via.placeholder.com/${img.width}x${img.height}`;
  }
 
 //MESSAGE HANGLER
@@ -425,13 +518,14 @@ chrome.runtime.onMessage.addListener(
             case "redactonce":
                 //redacts one single time
                 console.log(message);
-                redactPage(message.data.mode,message.data.rules,message.data);
+                redactPage(document.getElementsByTagName('*'),message.data.mode,message.data.rules,message.data);
                 break;
             case "redact":
                 //redacts ON
                 sessionStorage.setItem('redacting', "true");
                 //message.redactType
-                redactPage(message.data.mode,message.data.rules,message.data);
+                observer = createMutObserver(message.data);
+                redactPage(document.getElementsByTagName('*'),message.data.mode,message.data.rules,message.data);
                 break;
                 case "stopredact":
                     //REDACT OFF
