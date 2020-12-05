@@ -1,3 +1,5 @@
+//it is side loaded via the manifest    
+//require * as redactorlogic from "./processRules.js"
 
 var nextID = 1;
 
@@ -7,99 +9,13 @@ function hashElem(div){
    return div.hashID;
 }
 
+/*keeps track of what elements were already changed.
+this is done in case element are reloaded for some reason
+*/
 mutatedElems = {}
 
-  // Stop the observer, when it is not required any more.
-//observer.disconnect();
-
-
-
- function processRules(rules)
-{
-  console.log("PRCOESSING ULES");
-  console.log(rules);
-
-  rulearr=[]
-
-  let ruleobj={what:'',how:'',who:'',forwho:''};  
-  let lines = rules.split('\n');
-
-  //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)\|(.*)/i;
- // const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)(?:\|(.*)|.*)/i;
-//const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*?)\s*-\>(.*)$/i;
-const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel)\s+(.+)$/i;
-
-  for(var i = 0;i < lines.length;i++){
-    
-    //code here using lines[i] which will give you each line
-
-    console.log(lines[i]);
-    let found = lines[i].match(regex);
-    console.log(found);
-    if(found==null)
-      continue;
-    
-    ruleobj.what=found[1].toLowerCase();
-    ruleobj.how=found[2].toLowerCase();
-    ruleobj.who=found[3];
-    ruleobj.forwho=found[4];
-
-    if(ruleobj.what=="ign")
-    {
-      ruleobj.what="ignore"
-    }else if(ruleobj.what=="rep")
-    {
-      ruleobj.what="replace"
-    }else if(ruleobj.what=="red")
-    {
-      console.log("HERE");
-      ruleobj.what="redact"
-    }else  if(ruleobj.how=="str")
-    {
-      ruleobj.how="string"
-    }
-
-
-    if (found[1]=='replace')
-    {
-
-    lol = found[3].match(/(.+?)->(.*)/i)
-    
-    //overwirte previous who
-    ruleobj.who=lol[1];
-    ruleobj.forwho=lol[2];
-    }
-   /* else
-    {
-    console.log("NORMAL:",match[3]);
-    }*/
-
-
-
-
-    console.log(found[1].toLowerCase());
-    console.log(ruleobj.what,ruleobj.how,ruleobj.who)
-    console.log("OBS");
-    console.log(ruleobj);
-
-
-    //objects are passed by reference, so a copy must be made
-    rulearr.push(Object.assign({}, ruleobj))
-
-
-    
-  }
-  console.log(rulearr);
-  return rulearr;
-
-}
-
-const generateRandomString = (length=6)=>Math.random().toString(20).substr(2, length);
-
-/*et paragraphs = document.querySelectorAll('p,li,h1,h2,h3,h4,h5,h6,span,a')*/
-/*let imgs = document.getElementsByTagName('img')*/
-
-
+// Stop the observer, when it is not required any more.
+//
 
 
 // Get saved data from sessionStorage
@@ -112,28 +28,35 @@ var observer;
 
 function createMutObserver(data)
 {
-
-
-
 return new MutationObserver(function (mutations) {
 
 
+    console.log("Mutation Triggered");
+
     //hide images
     mutations.forEach(function (mutation) {
-      console.log(mutation);
+     // console.log(mutation);
 
-      console.log(mutation.type);
-      console.log(mutation.attributeName);
-      console.log(mutation.target.nodeName)
-      console.log(mutation.target.nodeName)
+      //console.log(mutation.type);
+      //console.log(mutation.attributeName);
+      //console.log(mutation.target.nodeName)
+      //console.log(mutation.target.nodeName)
 
 
       if(mutation.type=='childList')
       {
-       redactPage(mutation.addedNodes,data.mode,data.rules,data) 
+        console.log(mutation);
+        console.log()
+        var nodet;
+        for( nodet of mutation.addedNodes)
+        {
+            redactPage(nodet,data.mode,data.rules,data) 
+        }
+      
        //redactPage(document.getElementsByTagName('*'),result.mode,processRules(result.rules),result);
     }else if(data.imgredact==true &&  mutation.type=="attributes" && mutation.attributeName=="src" && mutation.target.nodeName=="IMG")
-      {
+      { 
+          console.log(mutation.target.outerHTML);
         //if does not exist in mutations elems
         //alternative to issmaenode https://www.w3schools.com/JSREF/met_node_issamenode.asp#:~:text=The%20isSameNode()%20method%20checks,the%20same%20node%2C%20otherwise%20false.
         if(hashElem(mutation.target) in mutatedElems == false)
@@ -141,13 +64,13 @@ return new MutationObserver(function (mutations) {
 
         
           //hide img
-          console.log("TIME TO HIDE");
+         // console.log("TIME TO HIDE");
           RedactImg(mutation.target);
           hashElem(mutation.target)
           mutatedElems[hashElem(mutation.target)]=mutation.target;
         }
         else{
-            console.log("Already Exists");
+           // console.log("Already Exists");
         }
       }
 
@@ -178,9 +101,9 @@ if(redacting=="true")
         
         imgredact=result.imgredact;
 
-
+        
         observer = createMutObserver(result);
-        redactPage(document.getElementsByTagName('*'),result.mode,processRules(result.rules),result);
+        redactPage(document.documentElement,result.mode,processRules(result.rules),result);
       });     
 }
 
@@ -226,28 +149,121 @@ function redactStr(str,mode)
         {
             auxtstr = "■".repeat(match[0].length);//█ █▆▀▀▀▀	▊▊▊▊▊▊▊ ■■■■ ◼◼◼
         }
-        
-        
+                
         copiestr = copiestr.slice(0, match.index) +auxtstr + copiestr.slice(match.index+match[0].length);
 
- 
-        }
+         }
                
             
 
     return copiestr;
 }
 
-async function redactPage(nodestoredact,redactType,rules,data)
+function redactPage(nodestoredact,redactType,rules,data,rec )
  {
+     console.log("REDACTUM PATRONUM");
 
-    console.log(data);
+    //turn off while modifying
+    if(observer!=undefined)
+{
+    observer.disconnect();
+}
+
+    console.log(data.imgredact);
+
+    //replace images
+    if(data.imgredact==true)
+    {
+
+
+        let imgs = document.getElementsByTagName('img');
+        console.log("IMAGES FOUND")
+        console.log(imgs);
+        for (elt of imgs)
+        {
+
+            elt.src=`https://via.placeholder.com/${elt.width}x${elt.height}`;
+            
+
+        }
+
+        //replace svgssss
+        let svgs = document.getElementsByTagName('svg')
+        console.log(svgs);
+
+        for (elt of svgs)
+        {
+            console.log(elt);
+
+
+            var btn = document.createElement("img");   // Create a <button> element
+            btn.src = "https://via.placeholder.com/36x36"; 
+            btn.style= `height:${elt.height};width:${elt.width}`               // Insert text
+            //elt.outerHTML=`<img src="https://via.placeholder.com/36x36" style="height:${elt.height};width:${elt.width}" >`
+            elt.replaceWith(btn);
+            elt.remove();
+
+        }
+
+        let iframes =  document.getElementsByTagName('iframe');
+        for (elt of iframes)
+        {
+            console.log(elt);
+
+
+            var btn = document.createElement("img");   // Create a <button> element
+            btn.src = "https://via.placeholder.com/36x36"; 
+            btn.style= `height:${elt.height};width:${elt.width}`               // Insert text
+            //elt.outerHTML=`<img src="https://via.placeholder.com/36x36" style="height:${elt.height};width:${elt.width}" >`
+            elt.replaceWith(btn);
+            //elt.remove();
+
+        }
+        /*
+        let vids= document.getElementsByTagName('video')
+        
+        var i;
+        console.log(vids.length);
+            for (i = 0; i < vids.length; i++) {
+            
+               
+    
+    
+                console.log(btn);
+                
+                vids[i].pause();
+                vids[i].removeAttribute('src'); // empty source
+                vids[i].load();
+                vids[i].abcdefgh='abcdefgh';
+            }*/
+
+    }
+        
+
+//traverse tree
+    var elt, ni;
+
+    ni = document.createNodeIterator(nodestoredact, NodeFilter.SHOW_ELEMENT);
+
+
+
+
+
 //replace text
-let paragraphs = nodestoredact
+
 
 //for every elemnt
-for (elt of paragraphs)
-{
+//for (elt of paragraphs)
+while(elt = ni.nextNode()) {
+    //console.log(elt.nodeName);
+//{
+
+    if(elt.tagName=="IFRAME")
+    {
+        console.log("IFRAMMME")
+        console.log(elt);
+    }
+
     //skipp style and script
     if (elt.tagName=="STYLE" || elt.tagName=="SCRIPT")
     {
@@ -261,7 +277,7 @@ for (elt of paragraphs)
     //loop thorugh its childs
     for ( var i = 0; i < elt.childNodes.length; i++ ) {
 
-
+        
         
         //look for childs tha are text
         if(elt.childNodes[i].nodeName == "#text")
@@ -288,11 +304,6 @@ for (elt of paragraphs)
             }
 
  
-                
- 
-            
-
-            //console.log(rules);
 
             //apply rules in the order they come
             for (const rule of rules)
@@ -356,25 +367,27 @@ for (elt of paragraphs)
      
      
 
-     //if element has backgorund image replace it
-
-
-     if(data.imgredact==true)
-     {
-         
-     //fetch style
-     style = elt.currentStyle || window.getComputedStyle(elt, false);
-     //fetch bckgoidn img link
-     bi = style.backgroundImage.slice(4, -1).replace(/"/g, "");
-
-     if(bi.length>2)
-     {
-        elt.style.backgroundImage="url(\"https://via.placeholder.com/350x150\")";
-     }
-
 
     }
-    }
+
+
+         //if element has backgorund image replace it
+         if(data.imgredact==true)
+         {
+             
+         //fetch style
+         style = elt.currentStyle || window.getComputedStyle(elt, false);
+    
+         //fetch bckgoidn img link
+         bi = style.backgroundImage.slice(4, -1).replace(/"/g, "");
+    
+         if(bi.length>2)
+         {
+            elt.style.backgroundImage="url(\"https://via.placeholder.com/350x150\")";
+         }
+    
+    
+        }
 }
 
 
@@ -456,44 +469,13 @@ for (const rule of rules)
     }
 
 
-
-
-
-
-
-        console.log(data.imgredact);
-
-        //replace images
-        if(data.imgredact==true)
-        {
-
-
-            let imgs = document.getElementsByTagName('img');
-
-            for (elt of imgs)
-            {
-
-                RedactImg(elt);
-                
-
-            }
-
-            let svgs = document.getElementsByTagName('svg');
-
-
-            for (elt of svgs)
-            {
-                    
-                elt.outerHTML=`<img src="https://via.placeholder.com/36x36" style="height:${elt.height};width:${elt.width}" >`
-
-            }
-        }
-   
-
           // Observe the body (and its descendants) for `childList` changes.
   //https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver/observe
+if(observer!== undefined)
+{
   observer.observe(document.body, config);
 
+}
  }
 
  function RedactImg(img)
@@ -518,18 +500,21 @@ chrome.runtime.onMessage.addListener(
             case "redactonce":
                 //redacts one single time
                 console.log(message);
-                redactPage(document.getElementsByTagName('*'),message.data.mode,message.data.rules,message.data);
+                redactPage(document.documentElement,message.data.mode,message.data.rules,message.data);
                 break;
             case "redact":
                 //redacts ON
                 sessionStorage.setItem('redacting', "true");
                 //message.redactType
                 observer = createMutObserver(message.data);
-                redactPage(document.getElementsByTagName('*'),message.data.mode,message.data.rules,message.data);
+
+                redacting="true";
+                redactPage(document.documentElement,message.data.mode,message.data.rules,message.data);
                 break;
                 case "stopredact":
                     //REDACT OFF
                     sessionStorage.setItem('redacting', "false");
+                    redacting="false";
                     break;
             default:
                 console.error("Unrecognised message: ", message);

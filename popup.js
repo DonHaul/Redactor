@@ -15,10 +15,15 @@
         });
 */
 
+//sideloaded via popup.html
+//import App from "./entrymanager.js"
+//import * as processRules from "./processRules.js"
+
+//open connection to background script
  var bgPage = chrome.extension.getBackgroundPage();
 
 
-//holds all needed info 
+//holds all needed info, in each popup
 var data={mode:'block',
           redacting:false,
           rules:[],
@@ -26,67 +31,63 @@ var data={mode:'block',
 
 
 
-//whenever the popup is open, it queries fetch information from the current tab
-   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {action: "getRedacting"}, function(redacting) {
-        /* ... */
-        console.log(redacting)
+//whenever the popup is open, it queries fetch information from the current tab to see if redacting is on
+chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 
-        if(redacting=="true")
-        {
-          data.redacting=true;
-          $("#Toggle").text("Turn OFF");
-        }
-    });
+  //receives back redacting variable
+  chrome.tabs.sendMessage(tabs[0].id, {action: "getRedacting"}, function(redacting) {
+
+    console.log(redacting)
+
+    if(redacting=="true")
+    {
+      data.redacting=true;
+      $("#Toggle").text("Turn OFF");
+    }
+});
 });
 
-//fetch all storeage rules
+//fetch all storage rules and set them up on the popup
 chrome.storage.local.get(['rules','imgredact','mode'], function(result) {
-  console.log('rukes');
-  console.log(result);
 
-  //default
-  if(result.rules==undefined)
-  {
-    $("#rules").val("redact regexp .*")
-  }
-  else
-  {
-    $("#rules").val(result.rules);
-  }
-  //data.rules = result.rules;
 
-  //update value of text area
-  if(result.mode==undefined)
-  {
     //default
-    $('#mode').val("block").change();
-  }else
-  {
-    $('#mode').val(result.mode).change();
-  }
+    if(result.rules==undefined)
+    {
+      $("#rules").val("redact regexp .*")
+    }
+    else
+    {
+      $("#rules").val(result.rules);
+    }
+    //data.rules = result.rules;
+
+    //update value of text area
+    if(result.mode==undefined)
+    {
+      //default
+      $('#mode').val("block").change();
+    }else
+    {
+      $('#mode').val(result.mode).change();
+    }
   
 
-  //update image redact
-  if(result.imgredact==true)
-  {
-    $("#imgredact").val("yes").change();
+    //update image redact
+    if(result.imgredact==true)
+    {
+      $("#imgredact").val("yes").change();
 
-  }else
-  {
-    //default
-    //.CHANGE IS USED TO TRIGGER date.image update
-    $("#imgredact").val("no").change();
-  }
-
-
-
-  
-
-
-
+    }else
+    {
+      //default
+      //.CHANGE IS USED TO TRIGGER date.image update
+      $("#imgredact").val("no").change();
+    }
 });  
 
+
+//what happends when changes are made to the rules text area
 //.bind('change keyup',
 $('#rules').change(function(){
 
@@ -98,24 +99,13 @@ $('#rules').change(function(){
 });
 
 
-/*
-//update rules
-$( "#save" ).click(function() {
-
-  let rules = $("#rules").val();
-  console.log(rules);
-});
-*/
 
 //https://stackoverflow.com/questions/5745822/open-a-help-page-after-chrome-extension-is-installed-first-time
 $("#help").click(function(){
-
-  chrome.tabs.create({url: "options.html"});
-
-  
+  chrome.tabs.create({url: "options.html"});  
 });
 
-
+//toggle image redacting on or off
 $("#imgredact").change(function(){
 
   if( $(this).children("option:selected").val()=='yes')
@@ -134,6 +124,8 @@ $("#imgredact").change(function(){
   
 });
 
+
+//templates for rules
 $("#ruleTemplates").change(function(){
 
   let templie = $(this).children("option:selected").val()
@@ -158,7 +150,7 @@ $("#ruleTemplates").change(function(){
 });
 
 
-
+//should redactions be replaced by blocks or letters?
 $("#mode").change(function(){
 
   data.mode = $(this).children("option:selected").val();
@@ -169,81 +161,7 @@ $("#mode").change(function(){
 });
 
 
-
-
-function processRules(rules)
-{
-  console.log("PRCOESSING ULES");
-
-  rulearr=[]
-
-  let ruleobj={what:'',how:'',who:'',forwho:''};  
-  let lines = rules.split('\n');
-
-  //const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)\|(.*)/i;
- // const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*)(?:\|(.*)|.*)/i;
-//const regex = /^\s*(ignore|replace|redact|ign|red|rep)\s+(regexp|str|string|xpath)\s+(.*?)\s*-\>(.*)$/i;
-const regex = /^\s*(replace|redact|red|rep)\s+(regexp|str|string|jquerysel|xpath)\s+(.+)$/i;
-
-  for(var i = 0;i < lines.length;i++){
-    
-    //code here using lines[i] which will give you each line
-
-    console.log(lines[i]);
-    let found = lines[i].match(regex);
-    console.log(found);
-    if(found==null)
-      continue;
-    
-    ruleobj.what=found[1].toLowerCase();
-    ruleobj.how=found[2].toLowerCase();
-    ruleobj.who=found[3];
-    ruleobj.forwho=found[4];
-
-    if(ruleobj.what=="ign")
-    {
-      ruleobj.what="ignore"
-    }else if(ruleobj.what=="rep")
-    {
-      ruleobj.what="replace"
-    }else if(ruleobj.what=="red")
-    {
-      console.log("HERE");
-      ruleobj.what="redact"
-    }else  if(ruleobj.how=="str")
-    {
-      ruleobj.how="string"
-    }
-
-
-    if (found[1]=='replace')
-    {
-
-    lol = found[3].match(/(.+?)->(.*)/i)
-    
-    //overwirte previous who
-    ruleobj.who=lol[1];
-    ruleobj.forwho=lol[2];
-    }
-   /* else
-    {
-    console.log("NORMAL:",match[3]);
-    }*/
-
-
-
-    //objects are passed by reference, so a copy must be made
-    rulearr.push(Object.assign({}, ruleobj))
-
-
-    
-  }
-  
-  return rulearr;
-console.log(rulearr);
-}
-
-
+//toggle redaction in this page
 $("#Toggle").click(function() {
 //toggle_btn.onclick = function(element) {
 
@@ -313,9 +231,10 @@ function getTabID() {
   })
 }
 
-
+//what happens when the onn button is presed
 $("#ON").click ( function() {
 
+    console.log(processRules);
     //retrieve rules and process them
     data.rules = processRules($('#rules').val());
 
@@ -329,6 +248,7 @@ $("#ON").click ( function() {
     }  
 
     console.log("REDACT ON");
+    console.log(tabid,msg);
     chrome.tabs.sendMessage(tabid,msg);
 
   });  
