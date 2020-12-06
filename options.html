@@ -14,15 +14,15 @@
 <code style="font-size: 14px;">ACTION METHOD OBJECT</code>
 <p>ACTION can be:</p>
     <ul>
-      <li>ignore - it will ignore something</li>
       <li>redact - it will redact something</li>
       <li>replace - it will replace something with another thing</li>
     </ul>
     <p>METHOD can be:</p>
     <ul>
-      <li>string - looks for a string to ignore/redact/replace</li>
-      <li>regexp - looks for a regular expression to ignore/redact/replace. Look more into regular expressions <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">here</a> carefull though, once you use regular expressions there is no going back :p</li>
+      <li>string - looks for a string to redact/replace</li>
+      <li>regexp - looks for a regular expression to redact/replace. Look more into regular expressions <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">here</a> carefull though, once you use regular expressions there is no going back :p</li>
       <li>jquerysel - looks for jquery selectors to ignore/redact/replace. See how to use them <a href="https://api.jquery.com/category/selectors/">here</a> and <a href="https://www.w3schools.com/jquery/jquery_ref_selectors.asp">here</a>, they allow you to select elements based on their id, class or dom place.</li>
+      <li>xpath - looks for xpath to redact/replace.</li>
     </ul>
 
     <h2>Usefull Uses - Hiding your phone number / credit card number</h2>
@@ -35,17 +35,16 @@
       
     <h3>Examples</h3>
     <ul>
-      <li>
-
-    <code style="font-size: 14px;">ignore string john</code>
-    <p>Will ignore the word john, and it will not redact it</p>
-  </li><li> <code style="font-size: 14px;">redact regexp (badword|sillyword)</code>
+<li> <code style="font-size: 14px;">redact regexp (badword|sillyword)</code>
     <p>Will redact the word john, and it will not redact it</p>
   </li><li><code style="font-size: 14px;">replace regexp (cat|dog)->turtle</code>
     <p>Will replace the word cat or the word dog, with the word turtle</p>
   </li><li><code style="font-size: 14px;">replace string female->male</code>
     <p>Will replace the word female by the word male</p>
-
+  </li><li><code style="font-size: 14px;">redact xpath //h1</code>
+    <p>Will redact all h1 titles via xpath</p>
+  </li><li><code style="font-size: 14px;">redact jquerysel #paragraph</code>
+    <p>Will redact all id paragraph via css selector</p>
   </li>
 </ul> For any suggestions or feature send email to ramiro.anumus@gmail.com
   </body>
