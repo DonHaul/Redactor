@@ -28,10 +28,8 @@
     <h2>Usefull Uses - Hiding your phone number / credit card number</h2>
     <p>Imagine you want to show a page with a credit cart number or your personal number, and you want to hide that, well just add two rules:</p>
     <code style="font-size: 14px;">
-      ignore regexp .*</br>
       redact regexp [0-9]</code>
-      <p>the first rule will make it so, nothing is redacted by default</p>
-      <p>the first rule will look for any numbers on the page and redact them</p>
+      <p>This rule will look for any numbers on the page and redact them</p>
       
     <h3>Examples</h3>
     <ul>
