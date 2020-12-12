@@ -34,6 +34,8 @@ var data={mode:'block',
 //whenever the popup is open, it queries fetch information from the current tab to see if redacting is on
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 
+  console.log("CUR TAB IS");
+  console.log(tabs[0].id)
   //receives back redacting variable
   chrome.tabs.sendMessage(tabs[0].id, {action: "getRedacting"}, function(redacting) {
 
@@ -221,7 +223,7 @@ function getTabID() {
   return new Promise((resolve, reject) => {
       try {
           chrome.tabs.query({
-              active: true,
+              active: true, currentWindow: true
           }, function (tabs) {
               resolve(tabs[0].id);
           })

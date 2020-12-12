@@ -31,7 +31,7 @@ function createMutObserver(data)
 return new MutationObserver(function (mutations) {
 
 
-    console.log("Mutation Triggered");
+    //console.log("Mutation Triggered");
 
     //hide images
     mutations.forEach(function (mutation) {
@@ -45,8 +45,8 @@ return new MutationObserver(function (mutations) {
 
       if(mutation.type=='childList')
       {
-        console.log(mutation);
-        console.log()
+        //console.log(mutation);
+        //console.log()
         var nodet;
         for( nodet of mutation.addedNodes)
         {
@@ -56,7 +56,7 @@ return new MutationObserver(function (mutations) {
        //redactPage(document.getElementsByTagName('*'),result.mode,processRules(result.rules),result);
     }else if(data.imgredact==true &&  mutation.type=="attributes" && mutation.attributeName=="src" && mutation.target.nodeName=="IMG")
       { 
-          console.log(mutation.target.outerHTML);
+          //console.log(mutation.target.outerHTML);
         //if does not exist in mutations elems
         //alternative to issmaenode https://www.w3schools.com/JSREF/met_node_issamenode.asp#:~:text=The%20isSameNode()%20method%20checks,the%20same%20node%2C%20otherwise%20false.
         if(hashElem(mutation.target) in mutatedElems == false)
@@ -91,11 +91,11 @@ return new MutationObserver(function (mutations) {
 
 if(redacting=="true")
 {
-    console.log("REDACTING ACTIVE");
+    //console.log("REDACTING ACTIVE");
 
     chrome.storage.local.get(['rules','imgredact','mode'], function(result) {
 
-        console.log(result);
+        //console.log(result);
 
         
         
@@ -109,7 +109,7 @@ if(redacting=="true")
 
 
     // send message to background script to update icon if thats the case
-    console.log("SEND MESSAGE");
+    //console.log("SEND MESSAGE");
 chrome.runtime.sendMessage({ action:"updateIcon",redacting: redacting });
 
 
@@ -161,7 +161,7 @@ function redactStr(str,mode)
 
 function redactPage(nodestoredact,redactType,rules,data,rec )
  {
-     console.log("REDACTUM PATRONUM");
+     //console.log("REDACTUM PATRONUM");
 
     //turn off while modifying
     if(observer!=undefined)
@@ -169,7 +169,7 @@ function redactPage(nodestoredact,redactType,rules,data,rec )
     observer.disconnect();
 }
 
-    console.log(data.imgredact);
+    //console.log(data.imgredact);
 
     //replace images
     if(data.imgredact==true)
@@ -177,8 +177,8 @@ function redactPage(nodestoredact,redactType,rules,data,rec )
 
 
         let imgs = document.getElementsByTagName('img');
-        console.log("IMAGES FOUND")
-        console.log(imgs);
+        //console.log("IMAGES FOUND")
+        //console.log(imgs);
         for (elt of imgs)
         {
 
@@ -189,11 +189,11 @@ function redactPage(nodestoredact,redactType,rules,data,rec )
 
         //replace svgssss
         let svgs = document.getElementsByTagName('svg')
-        console.log(svgs);
+        //console.log(svgs);
 
         for (elt of svgs)
         {
-            console.log(elt);
+            //console.log(elt);
 
 
             var btn = document.createElement("img");   // Create a <button> element
@@ -208,7 +208,7 @@ function redactPage(nodestoredact,redactType,rules,data,rec )
         let iframes =  document.getElementsByTagName('iframe');
         for (elt of iframes)
         {
-            console.log(elt);
+            //console.log(elt);
 
 
             var btn = document.createElement("img");   // Create a <button> element
@@ -483,6 +483,8 @@ if(observer!== undefined)
     img.src=`https://via.placeholder.com/${img.width}x${img.height}`;
  }
 
+
+
 //MESSAGE HANGLER
 chrome.runtime.onMessage.addListener(
     function(message, sender, sendResponse) {
@@ -521,7 +523,6 @@ chrome.runtime.onMessage.addListener(
         }
     }
 );
-
 
 
 
